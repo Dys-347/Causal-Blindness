@@ -1,7 +1,8 @@
 # Result Map
 
-This directory contains compact summaries and selected plots for the paper. Large
-checkpoints, raw logs, and raw datasets are not included in the public release.
+This directory contains compact summaries and selected plots for reproducibility
+inspection. Large checkpoints, raw logs, and raw datasets are not included in the
+public release.
 
 ## Reviewer-Facing Summaries
 
