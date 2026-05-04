@@ -5,10 +5,7 @@ blindness** in multivariate time-series forecasting.
 
 The artifact includes training adapters, evaluation scripts, response-curve
 analysis, functional sensitivity analysis, linear sanity baselines, augmented-ETT
-diagnostics, and compact result summaries. It is organized so that reviewers and
-readers can inspect the response metrics, trace the reported numbers back to
-scripts and CSV files, and rerun the main diagnostics in compatible forecasting
-backbone repositories.
+diagnostics, and compact result summaries. 
 
 ## What The Code Tests
 
