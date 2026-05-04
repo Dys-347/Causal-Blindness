@@ -1,8 +1,7 @@
 # Reproducibility Guide
 
 This document explains how to inspect and rerun the artifact. The goal is to make
-the causal-response diagnostics transparent without requiring reviewers to
-download large checkpoints or raw training logs.
+the causal-response diagnostics transparent while keeping the repository compact.
 
 ## 1. Environment
 
@@ -93,17 +92,13 @@ export TSL_DIR=/path/to/Time-Series-Library
 export LOG_ROOT=./causal_r1_runs
 ```
 
-## 5. What Is Intentionally Excluded
+## 5. Artifact Scope
 
-The artifact excludes:
+The repository stores project-specific code, compact CSV/Markdown summaries, and
+selected diagnostic plots. Raw benchmark downloads, model checkpoints, and full
+training logs are treated as generated artifacts: they should be downloaded,
+regenerated, or produced by rerunning the corresponding scripts in the local
+backbone environment.
 
-- submission write-up files,
-- raw third-party datasets,
-- model checkpoints,
-- raw training logs,
-- private server paths or credentials,
-- local Python and LaTeX cache files.
-
-The included CSV/Markdown summaries and selected plots are intended to support
-transparent review of the reported diagnostics while keeping the repository small
-and safe to inspect.
+This layout keeps the artifact small enough to inspect while preserving the code
+paths used to compute the response metrics and aggregate result summaries.

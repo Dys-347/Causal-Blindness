@@ -1,13 +1,14 @@
-# Causal Blindness Reproducibility Artifact
+# Causal Blindness: Code and Reproducibility Artifact
 
-This repository provides the code and compact evidence needed to inspect the
-experiments for **Causal Blindness in Multivariate Time-Series Forecasting**.
+This repository contains the project-specific code for diagnosing **causal
+blindness** in multivariate time-series forecasting.
 
-The repository is intended for reviewers and readers who want to verify how the
-diagnostics were computed. It includes experiment drivers, evaluation scripts,
-response-curve analysis, sensitivity analysis, and compact result summaries. It
-does not include submission write-up files, large checkpoints, raw third-party
-datasets, private machine logs, or local cache files.
+The artifact includes training adapters, evaluation scripts, response-curve
+analysis, functional sensitivity analysis, linear sanity baselines, augmented-ETT
+diagnostics, and compact result summaries. It is organized so that reviewers and
+readers can inspect the response metrics, trace the reported numbers back to
+scripts and CSV files, and rerun the main diagnostics in compatible forecasting
+backbone repositories.
 
 ## What The Code Tests
 
@@ -31,19 +32,18 @@ effect on `Y`. This makes it possible to measure not only observational error
 
 ## Code Availability
 
-All project-specific code used to run the diagnostics and produce compact
-summaries is provided under `scripts/`.
+All project-specific code for the diagnostics is provided under `scripts/`.
 
-The repository does **not** vendor full external forecasting libraries. Some
-training scripts are adapters for existing implementations:
+Some training scripts are adapters for existing forecasting implementations:
 
 - Time-Series-Library for iTransformer, DLinear, PatchTST, Crossformer, and
   TimeMixer style experiments.
 - DUET for DUET-Mix and DUET-related experiments.
 
-This keeps the artifact focused and avoids redistributing third-party code. The
-scripts expose command-line arguments and environment variables so that paths can
-be set locally.
+The full external libraries are not vendored into this repository. This keeps the
+artifact focused on the proposed diagnostics and avoids redistributing
+third-party code. The scripts expose command-line arguments and environment
+variables so that local dataset and backbone paths can be set explicitly.
 
 ## Repository Layout
 
@@ -54,6 +54,13 @@ requirements.txt      Minimal dependencies for standalone analysis scripts
 REPRODUCIBILITY.md    Step-by-step artifact inspection guide
 CODE_STRUCTURE.md     Script-by-script map of the codebase
 ```
+
+## Artifact Scope
+
+Large generated artifacts such as model checkpoints, raw benchmark downloads, raw
+training logs, and local cache files are not versioned. The repository instead
+contains the code needed to regenerate the diagnostics and compact result files
+that make the reported numbers auditable.
 
 ## Main Result Summaries
 
