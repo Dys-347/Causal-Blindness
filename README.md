@@ -18,8 +18,11 @@ Y[t] = 2 * C[t-1] + noise
 ```
 
 Therefore a last-step intervention on `C` has an analytically known horizon-1
-effect on `Y`. This makes it possible to measure not only observational error
-(`MSE`/`MAE`), but also response correctness:
+effect on `Y`. The artifact also includes controlled mechanism-family variants
+with a multi-lag linear response and a nonlinear sine response, used as targeted
+robustness checks against a one-lag linear-only interpretation. These controlled
+settings make it possible to measure not only observational error (`MSE`/`MAE`),
+but also response correctness:
 
 - horizon-1 interventional response error,
 - response slope across intervention magnitudes,
@@ -65,6 +68,7 @@ The fastest way to inspect the numerical evidence is:
 
 - `results/priority_20260504/summary.md`
 - `results/lookback_20260504/summary.md`
+- `results/v3_mechanism_family_20260504/summary.md`
 - `results/ett_augmented_20260504/summary.md`
 - `results/causal_r1_linear_baselines_20260504/linear_causal_baselines_report.md`
 - `results/duet_crr_20260503/duet_baseline_vs_rir_curve.png`
@@ -83,6 +87,7 @@ Standalone analysis scripts can be inspected directly:
 
 ```bash
 python scripts/linear_causal_baselines.py --help
+python scripts/generate_synthetic_mechanism_family.py --help
 python scripts/counterfactual_h1_response_eval.py --help
 python scripts/evaluate_delta_response_curve.py --help
 python scripts/gradient_input_sensitivity.py --help
@@ -95,6 +100,7 @@ external project checkout, or called with paths pointing to that checkout:
 # DUET synthetic baseline / RIR diagnostics
 python scripts/train_eval_duet_synthetic_causal.py --help
 python scripts/train_eval_duet_crr_synthetic.py --help
+python scripts/summarize_v3_mechanism_family.py --help
 
 # iTransformer RIR and augmented-ETT diagnostics
 python scripts/train_itransformer_crr_h1.py --help

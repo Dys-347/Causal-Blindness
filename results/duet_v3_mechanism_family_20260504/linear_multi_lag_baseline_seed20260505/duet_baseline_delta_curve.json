@@ -1,0 +1,308 @@
+{
+  "metadata": {
+    "timestamp": "20260505_001212",
+    "data_path": "dataset/causal_r1_mechanism_family/synthetic_linear_multi_lag.csv",
+    "columns": [
+      "Cause_Var",
+      "Dist_01",
+      "Dist_02",
+      "Dist_03",
+      "Dist_04",
+      "Dist_05",
+      "Dist_06",
+      "Dist_07",
+      "Dist_08",
+      "Dist_09",
+      "Dist_10",
+      "Dist_11",
+      "Dist_12",
+      "Dist_13",
+      "Dist_14",
+      "Dist_15",
+      "Dist_16",
+      "Dist_17",
+      "Dist_18",
+      "Dist_19",
+      "Target_Var"
+    ],
+    "ci": 0,
+    "config": {
+      "data_path": "dataset/causal_r1_mechanism_family/synthetic_linear_multi_lag.csv",
+      "output_dir": "causal_r1_duet/v3_mechanism_family_20260504/linear_multi_lag_baseline_seed20260505",
+      "seq_len": 96,
+      "pred_len": 96,
+      "ci": 0,
+      "epochs": 20,
+      "patience": 5,
+      "batch_size": 32,
+      "lr": 0.0005,
+      "loss": "MSE",
+      "d_model": 512,
+      "d_ff": 512,
+      "hidden_size": 256,
+      "e_layers": 2,
+      "n_heads": 8,
+      "factor": 3,
+      "dropout": 0.1,
+      "fc_dropout": 0.1,
+      "moving_avg": 25,
+      "num_experts": 4,
+      "k": 2,
+      "delta": 5.0,
+      "seed": 20260505,
+      "num_workers": 0
+    },
+    "borders": {
+      "train": [
+        0,
+        7000
+      ],
+      "val": [
+        6904,
+        8000
+      ],
+      "test": [
+        7904,
+        10000
+      ]
+    },
+    "num_windows": {
+      "train": 6809,
+      "val": 905,
+      "test": 1905
+    },
+    "device": "cuda",
+    "mechanism_metadata": {
+      "mechanism": "linear_multi_lag",
+      "equation": "Y_t = 1.5 * C_{t-1} + 0.8 * C_{t-3} + epsilon_t",
+      "n_steps": 10000,
+      "n_distractors": 19,
+      "seed": 20260505,
+      "noise_std": 0.05,
+      "cause_col": "Cause_Var",
+      "target_col": "Target_Var",
+      "distractor_cols": [
+        "Dist_01",
+        "Dist_02",
+        "Dist_03",
+        "Dist_04",
+        "Dist_05",
+        "Dist_06",
+        "Dist_07",
+        "Dist_08",
+        "Dist_09",
+        "Dist_10",
+        "Dist_11",
+        "Dist_12",
+        "Dist_13",
+        "Dist_14",
+        "Dist_15",
+        "Dist_16",
+        "Dist_17",
+        "Dist_18",
+        "Dist_19"
+      ],
+      "h1_response": {
+        "type": "linear_last_cause",
+        "raw_gain": 1.5
+      },
+      "channel_order_after_loading": [
+        "Cause_Var",
+        "Dist_01",
+        "Dist_02",
+        "Dist_03",
+        "Dist_04",
+        "Dist_05",
+        "Dist_06",
+        "Dist_07",
+        "Dist_08",
+        "Dist_09",
+        "Dist_10",
+        "Dist_11",
+        "Dist_12",
+        "Dist_13",
+        "Dist_14",
+        "Dist_15",
+        "Dist_16",
+        "Dist_17",
+        "Dist_18",
+        "Dist_19",
+        "Target_Var"
+      ],
+      "splits": {
+        "train": 0.7,
+        "val": 0.1,
+        "test": 0.2
+      },
+      "note": "Horizon-1 labels are for last-step interventions on standardized Cause_Var inputs. Nonlinear labels are sample-dependent and should be computed from this metadata."
+    },
+    "response_context": {
+      "response_type": "linear_last_cause",
+      "cause_mean": 0.009609943938202508,
+      "cause_scale": 0.6446950617616531,
+      "target_mean": 0.021994892510175956,
+      "target_scale": 1.4660576898052138,
+      "raw_gain": 1.5,
+      "causal_gain_scaled": 0.6596211045221316
+    },
+    "causal_gain_scaled": 0.6596211045221316,
+    "best_epoch": 10,
+    "best_val_loss": 0.20088127358206387,
+    "note": "DUETModel.forward_ is used to avoid the repository's modified debug forward()."
+  },
+  "delta_curve": {
+    "rows": [
+      {
+        "delta": -5.0,
+        "expected_mean": -3.2981061935424805,
+        "pred_mean": -0.09698382019996643,
+        "pred_abs_mean": 0.17221282422542572,
+        "ire_mae": 3.2011218070983887,
+        "ire_rmse": 3.206937074661255,
+        "response_ratio": 0.029405911910858323,
+        "response_slope": 0.02940591797232628,
+        "response_corr": NaN,
+        "num_windows": 1905
+      },
+      {
+        "delta": -4.0,
+        "expected_mean": -2.6384847164154053,
+        "pred_mean": -0.08430030941963196,
+        "pred_abs_mean": 0.13993054628372192,
+        "ire_mae": 2.5541841983795166,
+        "ire_rmse": 2.558811902999878,
+        "response_ratio": 0.03195027391864552,
+        "response_slope": 0.031950272619724274,
+        "response_corr": -0.012582516786883137,
+        "num_windows": 1905
+      },
+      {
+        "delta": -3.0,
+        "expected_mean": -1.97886323928833,
+        "pred_mean": -0.07695793360471725,
+        "pred_abs_mean": 0.10233667492866516,
+        "ire_mae": 1.9019054174423218,
+        "ire_rmse": 1.9045790433883667,
+        "response_ratio": 0.038889970805862296,
+        "response_slope": 0.03888995945453644,
+        "response_corr": 0.004616328452538985,
+        "num_windows": 1905
+      },
+      {
+        "delta": -2.0,
+        "expected_mean": -1.3192423582077026,
+        "pred_mean": -0.05718594416975975,
+        "pred_abs_mean": 0.06581758707761765,
+        "ire_mae": 1.2620563507080078,
+        "ire_rmse": 1.2633609771728516,
+        "response_ratio": 0.04334756522482455,
+        "response_slope": 0.043347567319869995,
+        "response_corr": 0.013335630338146463,
+        "num_windows": 1905
+      },
+      {
+        "delta": -1.0,
+        "expected_mean": -0.6596211791038513,
+        "pred_mean": -0.02939523383975029,
+        "pred_abs_mean": 0.032257549464702606,
+        "ire_mae": 0.6302258968353271,
+        "ire_rmse": 0.6309399604797363,
+        "response_ratio": 0.044563811428380895,
+        "response_slope": 0.044563814997673035,
+        "response_corr": 0.014445603957283419,
+        "num_windows": 1905
+      },
+      {
+        "delta": -0.5,
+        "expected_mean": -0.32981058955192566,
+        "pred_mean": -0.015095087699592113,
+        "pred_abs_mean": 0.016832273453474045,
+        "ire_mae": 0.31492021679878235,
+        "ire_rmse": 0.31560423970222473,
+        "response_ratio": 0.04576896005704368,
+        "response_slope": 0.04576895758509636,
+        "response_corr": -0.008759052338025708,
+        "num_windows": 1905
+      },
+      {
+        "delta": 0.5,
+        "expected_mean": 0.32981058955192566,
+        "pred_mean": 0.014910603873431683,
+        "pred_abs_mean": 0.017298344522714615,
+        "ire_mae": 0.31510981917381287,
+        "ire_rmse": 0.3160581588745117,
+        "response_ratio": 0.045209597101442206,
+        "response_slope": 0.045209597796201706,
+        "response_corr": -0.0005208663907051525,
+        "num_windows": 1905
+      },
+      {
+        "delta": 1.0,
+        "expected_mean": 0.6596211791038513,
+        "pred_mean": 0.029509007930755615,
+        "pred_abs_mean": 0.03338118642568588,
+        "ire_mae": 0.6301121115684509,
+        "ire_rmse": 0.6312410831451416,
+        "response_ratio": 0.04473629541556866,
+        "response_slope": 0.04473629593849182,
+        "response_corr": -0.006576856320178233,
+        "num_windows": 1905
+      },
+      {
+        "delta": 2.0,
+        "expected_mean": 1.3192423582077026,
+        "pred_mean": 0.05275585129857063,
+        "pred_abs_mean": 0.06806627660989761,
+        "ire_mae": 1.266486406326294,
+        "ire_rmse": 1.2687788009643555,
+        "response_ratio": 0.039989506833485636,
+        "response_slope": 0.03998950496315956,
+        "response_corr": -0.05273257348524248,
+        "num_windows": 1905
+      },
+      {
+        "delta": 3.0,
+        "expected_mean": 1.97886323928833,
+        "pred_mean": 0.06802032887935638,
+        "pred_abs_mean": 0.10693550109863281,
+        "ire_mae": 1.910843014717102,
+        "ire_rmse": 1.914965271949768,
+        "response_ratio": 0.03437343598530787,
+        "response_slope": 0.03437342494726181,
+        "response_corr": -0.031015121207716344,
+        "num_windows": 1905
+      },
+      {
+        "delta": 4.0,
+        "expected_mean": 2.6384847164154053,
+        "pred_mean": 0.07560873031616211,
+        "pred_abs_mean": 0.1473337709903717,
+        "ire_mae": 2.562875747680664,
+        "ire_rmse": 2.568988084793091,
+        "response_ratio": 0.028656118356782705,
+        "response_slope": 0.028656121343374252,
+        "response_corr": 0.009800988008824731,
+        "num_windows": 1905
+      },
+      {
+        "delta": 5.0,
+        "expected_mean": 3.2981061935424805,
+        "pred_mean": 0.07724602520465851,
+        "pred_abs_mean": 0.17586663365364075,
+        "ire_mae": 3.2208595275878906,
+        "ire_rmse": 3.22812557220459,
+        "response_ratio": 0.023421327474507092,
+        "response_slope": 0.023421328514814377,
+        "response_corr": NaN,
+        "num_windows": 1905
+      }
+    ],
+    "summary": {
+      "curve_slope_from_means": 0.03072531118139613,
+      "curve_corr_from_means": 0.9844059265651566,
+      "curve_ire_mae_mean": 1.6475583761930466,
+      "curve_response_ratio_mean": 0.037526064542725786,
+      "num_delta_points": 12
+    }
+  }
+}

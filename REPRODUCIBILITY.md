@@ -22,6 +22,7 @@ check the numerical evidence reported by the experiments:
 ```text
 results/priority_20260504/summary.md
 results/lookback_20260504/summary.md
+results/v3_mechanism_family_20260504/summary.md
 results/ett_augmented_20260504/summary.md
 results/causal_r1_linear_baselines_20260504/linear_causal_baselines_report.md
 ```
@@ -40,6 +41,7 @@ The following scripts are designed to be readable and runnable with local paths:
 
 ```bash
 python scripts/linear_causal_baselines.py --help
+python scripts/generate_synthetic_mechanism_family.py --help
 python scripts/counterfactual_h1_response_eval.py --help
 python scripts/evaluate_delta_response_curve.py --help
 python scripts/gradient_input_sensitivity.py --help
@@ -82,6 +84,7 @@ scripts/train_eval_duet_synthetic_causal.py
 scripts/train_eval_duet_crr_synthetic.py
 scripts/train_eval_duet_baseline_curve.py
 scripts/run_lookback_experiments_20260504.sh
+scripts/run_v3_mechanism_family_20260504.sh
 ```
 
 The shell wrappers use environment variables for local configuration:
@@ -90,6 +93,18 @@ The shell wrappers use environment variables for local configuration:
 export DUET_DIR=/path/to/DUET-main
 export TSL_DIR=/path/to/Time-Series-Library
 export LOG_ROOT=./causal_r1_runs
+```
+
+To regenerate the controlled mechanism-family robustness experiment in a DUET
+checkout:
+
+```bash
+export DUET_DIR=/path/to/DUET-main
+export CUDA_VISIBLE_DEVICES=0
+bash scripts/run_v3_mechanism_family_20260504.sh
+python scripts/summarize_v3_mechanism_family.py \
+  --input-root /path/to/DUET-main/causal_r1_duet/v3_mechanism_family_20260504 \
+  --output-dir results/v3_mechanism_family_20260504
 ```
 
 ## 5. Artifact Scope

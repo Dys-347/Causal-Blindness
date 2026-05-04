@@ -27,6 +27,11 @@ from train_eval_duet_synthetic_causal import (
     make_splits,
     set_seed,
 )
+from synthetic_mechanism_utils import (
+    build_response_context,
+    expected_h1_change,
+    load_mechanism_metadata,
+)
 
 
 def sample_delta(batch_size, max_abs_delta, device, min_abs_ratio=0.1):
@@ -36,7 +41,7 @@ def sample_delta(batch_size, max_abs_delta, device, min_abs_ratio=0.1):
     return signs * mags
 
 
-def train_one_epoch_crr(model, loader, optimizer, pred_criterion, resp_criterion, device, causal_gain, args):
+def train_one_epoch_crr(model, loader, optimizer, pred_criterion, resp_criterion, device, response_context, args):
     model.train()
     totals = []
     pred_losses = []
@@ -60,7 +65,7 @@ def train_one_epoch_crr(model, loader, optimizer, pred_criterion, resp_criterion
         pred_cf, imp_cf = clean_forward(model, x_cf)
         pred_cf = pred_cf[:, -y.shape[1] :, :]
         pred_change = pred_cf[:, 0, -1] - pred[:, 0, -1]
-        expected = causal_gain * delta
+        expected = expected_h1_change(x, x_cf, "cause_last_shift_plus_delta", response_context)
         resp_loss = resp_criterion(pred_change, expected)
 
         dist_delta = sample_delta(x.shape[0], args.delta, device, args.min_abs_delta_ratio)
@@ -100,7 +105,7 @@ def train_one_epoch_crr(model, loader, optimizer, pred_criterion, resp_criterion
 
 
 @torch.no_grad()
-def evaluate_crr_loss(model, loader, pred_criterion, resp_criterion, device, causal_gain, args):
+def evaluate_crr_loss(model, loader, pred_criterion, resp_criterion, device, response_context, args):
     model.eval()
     pred_losses = []
     resp_losses = []
@@ -119,7 +124,7 @@ def evaluate_crr_loss(model, loader, pred_criterion, resp_criterion, device, cau
         pred_cf, _ = clean_forward(model, x_cf)
         pred_cf = pred_cf[:, -y.shape[1] :, :]
         pred_change = pred_cf[:, 0, -1] - pred[:, 0, -1]
-        expected = causal_gain * delta
+        expected = expected_h1_change(x, x_cf, "cause_last_shift_plus_delta", response_context)
         resp_losses.append(float(resp_criterion(pred_change, expected).detach().cpu()))
 
         dist_delta = sample_delta(x.shape[0], args.delta, device, args.min_abs_delta_ratio)
@@ -146,10 +151,9 @@ def evaluate_crr_loss(model, loader, pred_criterion, resp_criterion, device, cau
     }
 
 
-def curve_stats_init(delta, expected):
+def curve_stats_init(delta):
     return {
         "delta": float(delta),
-        "expected_mean": float(expected),
         "pred": [],
         "true": [],
     }
@@ -165,7 +169,7 @@ def finalize_curve_row(stats):
     pred = np.concatenate(stats["pred"]) if stats["pred"] else np.array([], dtype=np.float32)
     true = np.concatenate(stats["true"]) if stats["true"] else np.array([], dtype=np.float32)
     err = pred - true
-    expected = stats["expected_mean"]
+    expected = float(np.mean(true)) if true.size else float("nan")
     pred_mean = float(np.mean(pred)) if pred.size else float("nan")
     denom = float(np.sum(true * true))
     slope = float(np.sum(pred * true) / denom) if denom > 1e-12 else float("nan")
@@ -200,9 +204,9 @@ def summarize_curve(rows):
 
 
 @torch.no_grad()
-def evaluate_delta_curve(model, loader, device, causal_gain, deltas):
+def evaluate_delta_curve(model, loader, device, response_context, deltas):
     model.eval()
-    stats = {float(delta): curve_stats_init(delta, causal_gain * float(delta)) for delta in deltas}
+    stats = {float(delta): curve_stats_init(delta) for delta in deltas}
     for x, y in loader:
         x = x.to(device)
         y = y.to(device)
@@ -216,7 +220,7 @@ def evaluate_delta_curve(model, loader, device, causal_gain, deltas):
             pred_cf, _ = clean_forward(model, x_cf)
             pred_cf = pred_cf[:, -y.shape[1] :, :]
             pred_change = pred_cf[:, 0, -1] - pred_h1
-            true_change = torch.full_like(pred_change, causal_gain * delta)
+            true_change = expected_h1_change(x, x_cf, "cause_last_shift_plus_delta", response_context)
             stats[delta]["pred"].append(pred_change.detach().cpu().numpy().reshape(-1))
             stats[delta]["true"].append(true_change.detach().cpu().numpy().reshape(-1))
     rows = [finalize_curve_row(stats[float(delta)]) for delta in deltas]
@@ -385,9 +389,8 @@ def main():
         "test": DataLoader(datasets["test"], batch_size=args.batch_size, shuffle=False, drop_last=False, num_workers=args.num_workers),
     }
 
-    cause_scale = float(scaler.scale_[0])
-    target_scale = float(scaler.scale_[-1])
-    causal_gain = 2.0 * cause_scale / target_scale
+    mechanism_metadata = load_mechanism_metadata(args.data_path)
+    response_context = build_response_context(scaler, mechanism_metadata)
 
     model = DUETModel(config).to(device)
     pred_criterion = make_criterion(args.loss)
@@ -405,11 +408,11 @@ def main():
             pred_criterion,
             resp_criterion,
             device,
-            causal_gain,
+            response_context,
             args,
         )
-        val_metrics = evaluate_crr_loss(model, loaders["val"], pred_criterion, resp_criterion, device, causal_gain, args)
-        test_metrics = evaluate_crr_loss(model, loaders["test"], pred_criterion, resp_criterion, device, causal_gain, args)
+        val_metrics = evaluate_crr_loss(model, loaders["val"], pred_criterion, resp_criterion, device, response_context, args)
+        test_metrics = evaluate_crr_loss(model, loaders["test"], pred_criterion, resp_criterion, device, response_context, args)
         score = (
             val_metrics["resp_loss"]
             + args.selection_pred_weight * val_metrics["pred_loss"]
@@ -434,9 +437,9 @@ def main():
     if stopper.best_state is not None:
         model.load_state_dict(stopper.best_state)
 
-    eval_result = formal_evaluate(model, loaders["test"], device, causal_gain, args.delta)
+    eval_result = formal_evaluate(model, loaders["test"], device, response_context, args.delta)
     deltas = [-5, -4, -3, -2, -1, -0.5, 0.5, 1, 2, 3, 4, 5]
-    curve_result = evaluate_delta_curve(model, loaders["test"], device, causal_gain, deltas)
+    curve_result = evaluate_delta_curve(model, loaders["test"], device, response_context, deltas)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_dir = args.output_dir or os.path.join("causal_r1_duet", f"crr_ci{int(args.ci)}_{timestamp}")
@@ -449,7 +452,9 @@ def main():
         "borders": borders,
         "num_windows": {name: len(ds) for name, ds in datasets.items()},
         "device": str(device),
-        "causal_gain_scaled": causal_gain,
+        "mechanism_metadata": mechanism_metadata,
+        "response_context": {key: value for key, value in response_context.items() if key != "metadata"},
+        "causal_gain_scaled": response_context.get("causal_gain_scaled"),
         "best_epoch": stopper.best_epoch,
         "best_score": best_score,
         "note": "DUETModel.forward_ is used to avoid the repository's modified debug forward().",

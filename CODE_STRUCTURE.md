@@ -7,6 +7,8 @@ This file maps each public script to its role in the artifact.
 | Script | Purpose |
 |---|---|
 | `linear_causal_baselines.py` | AR, ARX, and VARX sanity baselines under the same response-evaluation pipeline. |
+| `generate_synthetic_mechanism_family.py` | Generates controlled one-lag, multi-lag, and nonlinear synthetic mechanism families with metadata for exact H1 response labels. |
+| `synthetic_mechanism_utils.py` | Shared metadata loader and response-label utility for synthetic mechanism-family experiments. |
 | `counterfactual_h1_response_eval.py` | Horizon-1 intervention-response evaluation for trained forecasting models. |
 | `evaluate_delta_response_curve.py` | Delta-response curves across positive and negative intervention magnitudes. |
 | `gradient_input_sensitivity.py` | Functional central-difference sensitivity to cause, target-history, and distractor inputs. |
@@ -27,6 +29,7 @@ This file maps each public script to its role in the artifact.
 | `train_eval_duet_synthetic_causal.py` | DUET synthetic benchmark baseline evaluation. |
 | `train_eval_duet_baseline_curve.py` | DUET baseline delta-response curve evaluation. |
 | `run_lookback_experiments_20260504.sh` | DUET-Mix look-back window robustness wrapper. |
+| `run_v3_mechanism_family_20260504.sh` | DUET-Mix baseline/RIR wrapper for multi-lag and nonlinear controlled mechanism-family robustness. |
 
 ## Experiment Wrappers And Summaries
 
@@ -36,6 +39,7 @@ This file maps each public script to its role in the artifact.
 | `run_ett_augmented_20260504.sh` | Augmented ETTh2/ETTm1-style diagnostic wrapper. |
 | `summarize_priority_20260504.py` | Aggregates priority multi-seed results into compact CSV/Markdown summaries. |
 | `summarize_lookback_20260504.py` | Aggregates DUET look-back robustness results. |
+| `summarize_v3_mechanism_family.py` | Aggregates mechanism-family baseline/RIR runs into compact CSV/Markdown summaries. |
 
 ## Visualization
 

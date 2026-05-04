@@ -8,6 +8,8 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
+from synthetic_mechanism_utils import load_mechanism_metadata
+
 
 def split_and_standardize(df, seq_len):
     value_cols = [col for col in df.columns if col != "date"]
@@ -54,6 +56,8 @@ def design_matrix(windows, kind):
         feats = windows[:, -1, [-1]]
     elif kind == "ARX_C_last":
         feats = windows[:, -1, [0]]
+    elif kind == "ARX_C_lag1_lag3":
+        feats = windows[:, [-1, -3], 0]
     elif kind == "ARX_CY_last":
         feats = windows[:, -1, [0, -1]]
     elif kind == "VARX_all_last":
@@ -84,14 +88,28 @@ def eval_obs(y_true, y_pred):
     }
 
 
-def eval_delta_curve(windows, kind, weights, deltas, causal_gain):
+def expected_h1_np(x_orig, x_variant, metadata, mean, scale):
+    response = metadata.get("h1_response", {"type": "linear_last_cause", "raw_gain": 2.0})
+    response_type = response.get("type", "linear_last_cause")
+    if response_type == "linear_last_cause":
+        raw_gain = float(response.get("raw_gain", 2.0))
+        return raw_gain * float(scale[0]) / float(scale[-1]) * (x_variant[:, -1, 0] - x_orig[:, -1, 0])
+    if response_type == "sin_last_cause":
+        amplitude = float(response.get("amplitude", 1.0))
+        cause_orig_raw = x_orig[:, -1, 0] * float(scale[0]) + float(mean[0])
+        cause_variant_raw = x_variant[:, -1, 0] * float(scale[0]) + float(mean[0])
+        return amplitude * (np.sin(cause_variant_raw) - np.sin(cause_orig_raw)) / float(scale[-1])
+    raise ValueError(f"Unsupported h1_response type: {response_type}")
+
+
+def eval_delta_curve(windows, kind, weights, deltas, metadata, mean, scale):
     base_pred = predict(windows, kind, weights)
     rows = []
     for delta in deltas:
         variant = windows.copy()
         variant[:, -1, 0] += float(delta)
         pred_delta = predict(variant, kind, weights) - base_pred
-        true_delta = np.full_like(pred_delta, causal_gain * float(delta))
+        true_delta = expected_h1_np(windows, variant, metadata, mean, scale)
         err = pred_delta - true_delta
         denom = float(np.sum(true_delta * true_delta))
         slope = float(np.sum(pred_delta * true_delta) / denom) if denom > 1e-12 else float("nan")
@@ -175,7 +193,11 @@ def write_outputs(results, output_dir, metadata):
         f.write("# Linear Causal Baseline Sanity Check\n\n")
         f.write(f"Generated at: `{metadata['timestamp']}`\n\n")
         f.write("The CSV is reordered to `Cause, Distractors, Target`, then globally standardized with training-set statistics.\n\n")
-        f.write(f"Scaled causal gain: `{metadata['causal_gain_scaled']:.9f}`\n\n")
+        causal_gain = metadata.get("causal_gain_scaled")
+        if causal_gain is None or not np.isfinite(causal_gain):
+            f.write("Scaled causal gain: sample-dependent nonlinear response\n\n")
+        else:
+            f.write(f"Scaled causal gain: `{causal_gain:.9f}`\n\n")
         f.write("| Model | H1 MSE | H1 MAE | Cause Coef. | Full Slope | Full IRE | Small Slope | Small IRE |\n")
         f.write("|---|---:|---:|---:|---:|---:|---:|---:|\n")
         for row in model_rows:
@@ -198,7 +220,11 @@ def main():
     parser.add_argument("--data-path", default="dataset/synthetic_multivariate.csv")
     parser.add_argument("--seq-len", type=int, default=96)
     parser.add_argument("--pred-len", type=int, default=96)
-    parser.add_argument("--models", nargs="+", default=["AR_Y_last", "ARX_C_last", "ARX_CY_last", "VARX_all_last"])
+    parser.add_argument(
+        "--models",
+        nargs="+",
+        default=["AR_Y_last", "ARX_C_last", "ARX_C_lag1_lag3", "ARX_CY_last", "VARX_all_last"],
+    )
     parser.add_argument("--ridge", type=float, default=1e-6)
     parser.add_argument("--full-deltas", nargs="+", type=float, default=[-5, -4, -3, -2, -1, -0.5, 0.5, 1, 2, 3, 4, 5])
     parser.add_argument("--small-deltas", nargs="+", type=float, default=[-1, -0.5, -0.25, -0.1, 0.1, 0.25, 0.5, 1])
@@ -209,17 +235,22 @@ def main():
     values, ordered_cols, mean, scale, borders = split_and_standardize(df, seq_len=args.seq_len)
     x_train, y_train = make_windows(values, borders["train"], args.seq_len, args.pred_len)
     x_test, y_test = make_windows(values, borders["test"], args.seq_len, args.pred_len)
-    causal_gain = float(2.0 * scale[0] / scale[-1])
+    mechanism_metadata = load_mechanism_metadata(args.data_path)
+    response = mechanism_metadata.get("h1_response", {"type": "linear_last_cause", "raw_gain": 2.0})
+    if response.get("type", "linear_last_cause") == "linear_last_cause":
+        causal_gain = float(response.get("raw_gain", 2.0) * scale[0] / scale[-1])
+    else:
+        causal_gain = float("nan")
 
     results = []
     for model in args.models:
         x_design = design_matrix(x_train, model)
         weights = fit_ridge(x_design, y_train, ridge=args.ridge)
         y_pred = predict(x_test, model, weights)
-        full_rows = eval_delta_curve(x_test, model, weights, args.full_deltas, causal_gain)
-        small_rows = eval_delta_curve(x_test, model, weights, args.small_deltas, causal_gain)
+        full_rows = eval_delta_curve(x_test, model, weights, args.full_deltas, mechanism_metadata, mean, scale)
+        small_rows = eval_delta_curve(x_test, model, weights, args.small_deltas, mechanism_metadata, mean, scale)
         cause_coef = 0.0
-        if model in ["ARX_C_last", "ARX_CY_last", "VARX_all_last"]:
+        if model in ["ARX_C_last", "ARX_C_lag1_lag3", "ARX_CY_last", "VARX_all_last"]:
             cause_coef = float(weights[0])
         elif model == "VARX_full_history":
             cause_coef = float(weights[(args.seq_len - 1) * values.shape[1] + 0])
@@ -248,6 +279,7 @@ def main():
         "num_train_windows": int(x_train.shape[0]),
         "num_test_windows": int(x_test.shape[0]),
         "causal_gain_scaled": causal_gain,
+        "mechanism_metadata": mechanism_metadata,
         "full_deltas": args.full_deltas,
         "small_deltas": args.small_deltas,
     }

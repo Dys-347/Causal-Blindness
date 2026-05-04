@@ -22,6 +22,7 @@ from train_eval_duet_synthetic_causal import (
     train_one_epoch,
     write_outputs,
 )
+from synthetic_mechanism_utils import build_response_context, load_mechanism_metadata
 
 
 def write_curve_outputs(output_dir, metadata, curve_result):
@@ -165,12 +166,11 @@ def main():
     if stopper.best_state is not None:
         model.load_state_dict(stopper.best_state)
 
-    cause_scale = float(scaler.scale_[0])
-    target_scale = float(scaler.scale_[-1])
-    causal_gain = 2.0 * cause_scale / target_scale
-    eval_result = formal_evaluate(model, loaders["test"], device, causal_gain, args.delta)
+    mechanism_metadata = load_mechanism_metadata(args.data_path)
+    response_context = build_response_context(scaler, mechanism_metadata)
+    eval_result = formal_evaluate(model, loaders["test"], device, response_context, args.delta)
     deltas = [-5, -4, -3, -2, -1, -0.5, 0.5, 1, 2, 3, 4, 5]
-    curve_result = evaluate_delta_curve(model, loaders["test"], device, causal_gain, deltas)
+    curve_result = evaluate_delta_curve(model, loaders["test"], device, response_context, deltas)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_dir = args.output_dir or os.path.join(
@@ -186,7 +186,9 @@ def main():
         "borders": borders,
         "num_windows": {name: len(ds) for name, ds in datasets.items()},
         "device": str(device),
-        "causal_gain_scaled": causal_gain,
+        "mechanism_metadata": mechanism_metadata,
+        "response_context": {key: value for key, value in response_context.items() if key != "metadata"},
+        "causal_gain_scaled": response_context.get("causal_gain_scaled"),
         "best_epoch": stopper.best_epoch,
         "best_val_loss": stopper.best,
         "note": "DUETModel.forward_ is used to avoid the repository's modified debug forward().",

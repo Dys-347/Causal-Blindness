@@ -15,6 +15,12 @@ import torch.nn as nn
 from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader, Dataset
 
+from synthetic_mechanism_utils import (
+    build_response_context,
+    expected_h1_change as expected_h1_change_from_context,
+    load_mechanism_metadata,
+)
+
 from ts_benchmark.baselines.duet.models.duet_model import DUETModel
 
 
@@ -220,10 +226,8 @@ def apply_intervention(x, name, delta):
     return out
 
 
-def expected_h1_change(x_orig, x_variant, name, causal_gain):
-    if name.startswith("cause_"):
-        return causal_gain * (x_variant[:, -1, 0] - x_orig[:, -1, 0])
-    return torch.zeros(x_orig.shape[0], device=x_orig.device)
+def expected_h1_change(x_orig, x_variant, name, response_context):
+    return expected_h1_change_from_context(x_orig, x_variant, name, response_context)
 
 
 def init_stats():
@@ -295,7 +299,7 @@ def finalize_sensitivity(stats):
 
 
 @torch.no_grad()
-def formal_evaluate(model, loader, device, causal_gain, delta):
+def formal_evaluate(model, loader, device, response_context, delta):
     model.eval()
     interventions = [
         "cause_last_shift_plus_delta",
@@ -328,7 +332,7 @@ def formal_evaluate(model, loader, device, causal_gain, delta):
             pred_variant = pred_variant[:, -y.shape[1] :, :]
 
             pred_change_h1 = pred_variant[:, 0, -1] - pred_orig[:, 0, -1]
-            true_change_h1 = expected_h1_change(x, x_variant, name, causal_gain)
+            true_change_h1 = expected_h1_change(x, x_variant, name, response_context)
             add_array(h1_stats[name], "pred_change", pred_change_h1)
             add_array(h1_stats[name], "true_change", true_change_h1)
 
@@ -473,10 +477,9 @@ def main():
     if stopper.best_state is not None:
         model.load_state_dict(stopper.best_state)
 
-    cause_scale = float(scaler.scale_[0])
-    target_scale = float(scaler.scale_[-1])
-    causal_gain = 2.0 * cause_scale / target_scale
-    eval_result = formal_evaluate(model, loaders["test"], device, causal_gain, args.delta)
+    mechanism_metadata = load_mechanism_metadata(args.data_path)
+    response_context = build_response_context(scaler, mechanism_metadata)
+    eval_result = formal_evaluate(model, loaders["test"], device, response_context, args.delta)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_dir = args.output_dir or os.path.join(
@@ -492,7 +495,9 @@ def main():
         "borders": borders,
         "num_windows": {name: len(ds) for name, ds in datasets.items()},
         "device": str(device),
-        "causal_gain_scaled": causal_gain,
+        "mechanism_metadata": mechanism_metadata,
+        "response_context": {key: value for key, value in response_context.items() if key != "metadata"},
+        "causal_gain_scaled": response_context.get("causal_gain_scaled"),
         "best_epoch": stopper.best_epoch,
         "best_val_loss": stopper.best,
         "note": "DUETModel.forward_ is used to avoid the repository's modified debug forward().",

@@ -10,6 +10,11 @@ third-party datasets are intentionally excluded.
   three-seed DUET-Mix and augmented ETTh1 results.
 - `lookback_20260504/summary.md`:
   DUET-Mix look-back window robustness for `T in {48, 96, 192, 336}`.
+- `v3_mechanism_family_20260504/summary.md`:
+  DUET-Mix baseline/RIR robustness on controlled multi-lag and nonlinear
+  synthetic mechanisms.
+- `duet_v3_mechanism_family_20260504/`:
+  per-seed compact outputs for the mechanism-family DUET-Mix baseline/RIR runs.
 - `ett_augmented_20260504/summary.md`:
   three-seed augmented ETTh2 diagnostic.
 - `causal_r1_linear_baselines_20260504/linear_causal_baselines_report.md`:

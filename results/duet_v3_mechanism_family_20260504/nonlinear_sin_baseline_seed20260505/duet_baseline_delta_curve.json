@@ -1,0 +1,308 @@
+{
+  "metadata": {
+    "timestamp": "20260505_004844",
+    "data_path": "dataset/causal_r1_mechanism_family/synthetic_nonlinear_sin.csv",
+    "columns": [
+      "Cause_Var",
+      "Dist_01",
+      "Dist_02",
+      "Dist_03",
+      "Dist_04",
+      "Dist_05",
+      "Dist_06",
+      "Dist_07",
+      "Dist_08",
+      "Dist_09",
+      "Dist_10",
+      "Dist_11",
+      "Dist_12",
+      "Dist_13",
+      "Dist_14",
+      "Dist_15",
+      "Dist_16",
+      "Dist_17",
+      "Dist_18",
+      "Dist_19",
+      "Target_Var"
+    ],
+    "ci": 0,
+    "config": {
+      "data_path": "dataset/causal_r1_mechanism_family/synthetic_nonlinear_sin.csv",
+      "output_dir": "causal_r1_duet/v3_mechanism_family_20260504/nonlinear_sin_baseline_seed20260505",
+      "seq_len": 96,
+      "pred_len": 96,
+      "ci": 0,
+      "epochs": 20,
+      "patience": 5,
+      "batch_size": 32,
+      "lr": 0.0005,
+      "loss": "MSE",
+      "d_model": 512,
+      "d_ff": 512,
+      "hidden_size": 256,
+      "e_layers": 2,
+      "n_heads": 8,
+      "factor": 3,
+      "dropout": 0.1,
+      "fc_dropout": 0.1,
+      "moving_avg": 25,
+      "num_experts": 4,
+      "k": 2,
+      "delta": 5.0,
+      "seed": 20260505,
+      "num_workers": 0
+    },
+    "borders": {
+      "train": [
+        0,
+        7000
+      ],
+      "val": [
+        6904,
+        8000
+      ],
+      "test": [
+        7904,
+        10000
+      ]
+    },
+    "num_windows": {
+      "train": 6809,
+      "val": 905,
+      "test": 1905
+    },
+    "device": "cuda",
+    "mechanism_metadata": {
+      "mechanism": "nonlinear_sin",
+      "equation": "Y_t = 2.0 * sin(C_{t-1}) + epsilon_t",
+      "n_steps": 10000,
+      "n_distractors": 19,
+      "seed": 20260506,
+      "noise_std": 0.05,
+      "cause_col": "Cause_Var",
+      "target_col": "Target_Var",
+      "distractor_cols": [
+        "Dist_01",
+        "Dist_02",
+        "Dist_03",
+        "Dist_04",
+        "Dist_05",
+        "Dist_06",
+        "Dist_07",
+        "Dist_08",
+        "Dist_09",
+        "Dist_10",
+        "Dist_11",
+        "Dist_12",
+        "Dist_13",
+        "Dist_14",
+        "Dist_15",
+        "Dist_16",
+        "Dist_17",
+        "Dist_18",
+        "Dist_19"
+      ],
+      "h1_response": {
+        "type": "sin_last_cause",
+        "amplitude": 2.0
+      },
+      "channel_order_after_loading": [
+        "Cause_Var",
+        "Dist_01",
+        "Dist_02",
+        "Dist_03",
+        "Dist_04",
+        "Dist_05",
+        "Dist_06",
+        "Dist_07",
+        "Dist_08",
+        "Dist_09",
+        "Dist_10",
+        "Dist_11",
+        "Dist_12",
+        "Dist_13",
+        "Dist_14",
+        "Dist_15",
+        "Dist_16",
+        "Dist_17",
+        "Dist_18",
+        "Dist_19",
+        "Target_Var"
+      ],
+      "splits": {
+        "train": 0.7,
+        "val": 0.1,
+        "test": 0.2
+      },
+      "note": "Horizon-1 labels are for last-step interventions on standardized Cause_Var inputs. Nonlinear labels are sample-dependent and should be computed from this metadata."
+    },
+    "response_context": {
+      "response_type": "sin_last_cause",
+      "cause_mean": 0.00033331309866064526,
+      "cause_scale": 0.6513374960659077,
+      "target_mean": -0.002126726116380139,
+      "target_scale": 1.1142896395461237,
+      "amplitude": 2.0,
+      "causal_gain_scaled": 1.1690631824077855
+    },
+    "causal_gain_scaled": 1.1690631824077855,
+    "best_epoch": 20,
+    "best_val_loss": 0.13862664072678008,
+    "note": "DUETModel.forward_ is used to avoid the repository's modified debug forward()."
+  },
+  "delta_curve": {
+    "rows": [
+      {
+        "delta": -5.0,
+        "expected_mean": 0.17578692734241486,
+        "pred_mean": -0.051577672362327576,
+        "pred_abs_mean": 0.06367085129022598,
+        "ire_mae": 1.7261593341827393,
+        "ire_rmse": 1.9773712158203125,
+        "response_ratio": -0.2934101707225337,
+        "response_slope": 0.005311385728418827,
+        "response_corr": 0.23087726647738846,
+        "num_windows": 1905
+      },
+      {
+        "delta": -4.0,
+        "expected_mean": -0.7351320385932922,
+        "pred_mean": -0.04555877298116684,
+        "pred_abs_mean": 0.05279657244682312,
+        "ire_mae": 1.7154604196548462,
+        "ire_rmse": 1.9655115604400635,
+        "response_ratio": 0.06197359193913732,
+        "response_slope": 0.01545170322060585,
+        "response_corr": 0.30387377872374904,
+        "num_windows": 1905
+      },
+      {
+        "delta": -3.0,
+        "expected_mean": -1.3432585000991821,
+        "pred_mean": -0.035877346992492676,
+        "pred_abs_mean": 0.041250765323638916,
+        "ire_mae": 1.6562049388885498,
+        "ire_rmse": 1.907963514328003,
+        "response_ratio": 0.026709190367932605,
+        "response_slope": 0.017853546887636185,
+        "response_corr": 0.355091799219576,
+        "num_windows": 1905
+      },
+      {
+        "delta": -2.0,
+        "expected_mean": -1.399593472480774,
+        "pred_mean": -0.026666492223739624,
+        "pred_abs_mean": 0.029669439420104027,
+        "ire_mae": 1.4267818927764893,
+        "ire_rmse": 1.5873401165008545,
+        "response_ratio": 0.019053027002529078,
+        "response_slope": 0.01681549660861492,
+        "response_corr": 0.3025364904304695,
+        "num_windows": 1905
+      },
+      {
+        "delta": -1.0,
+        "expected_mean": -0.8810704350471497,
+        "pred_mean": -0.013849862851202488,
+        "pred_abs_mean": 0.01706809736788273,
+        "ire_mae": 0.8686094284057617,
+        "ire_rmse": 0.9144635796546936,
+        "response_ratio": 0.015719359429489113,
+        "response_slope": 0.015374509617686272,
+        "response_corr": 0.21713938085121662,
+        "num_windows": 1905
+      },
+      {
+        "delta": -0.5,
+        "expected_mean": -0.4652183949947357,
+        "pred_mean": -0.007371811196208,
+        "pred_abs_mean": 0.01144009456038475,
+        "ire_mae": 0.4578933119773865,
+        "ire_rmse": 0.4738398492336273,
+        "response_ratio": 0.01584591511324787,
+        "response_slope": 0.015614976175129414,
+        "response_corr": 0.11610311214559456,
+        "num_windows": 1905
+      },
+      {
+        "delta": 0.5,
+        "expected_mean": 0.4656781256198883,
+        "pred_mean": 0.007857461459934711,
+        "pred_abs_mean": 0.012047696858644485,
+        "ire_mae": 0.45907220244407654,
+        "ire_rmse": 0.47369128465652466,
+        "response_ratio": 0.016873159866539224,
+        "response_slope": 0.01663373038172722,
+        "response_corr": 0.10901387409201549,
+        "num_windows": 1905
+      },
+      {
+        "delta": 1.0,
+        "expected_mean": 0.8828610777854919,
+        "pred_mean": 0.01594325713813305,
+        "pred_abs_mean": 0.018964363262057304,
+        "ire_mae": 0.8733700513839722,
+        "ire_rmse": 0.913488507270813,
+        "response_ratio": 0.01805862500827879,
+        "response_slope": 0.01765400543808937,
+        "response_corr": 0.22223645053059862,
+        "num_windows": 1905
+      },
+      {
+        "delta": 2.0,
+        "expected_mean": 1.4060230255126953,
+        "pred_mean": 0.03234197571873665,
+        "pred_abs_mean": 0.03499274328351021,
+        "ire_mae": 1.4401508569717407,
+        "ire_rmse": 1.585253119468689,
+        "response_ratio": 0.0230024509783141,
+        "response_slope": 0.02041567489504814,
+        "response_corr": 0.31270584092918674,
+        "num_windows": 1905
+      },
+      {
+        "delta": 3.0,
+        "expected_mean": 1.3552757501602173,
+        "pred_mean": 0.047836728394031525,
+        "pred_abs_mean": 0.05137157440185547,
+        "ire_mae": 1.6430054903030396,
+        "ire_rmse": 1.902977466583252,
+        "response_ratio": 0.03529667552037022,
+        "response_slope": 0.02330157533288002,
+        "response_corr": 0.3749598498052335,
+        "num_windows": 1905
+      },
+      {
+        "delta": 4.0,
+        "expected_mean": 0.7513977289199829,
+        "pred_mean": 0.06157216057181358,
+        "pred_abs_mean": 0.06584936380386353,
+        "ire_mae": 1.681746244430542,
+        "ire_rmse": 1.9561011791229248,
+        "response_ratio": 0.08194350102749706,
+        "response_slope": 0.02233339659869671,
+        "response_corr": 0.40448491896134575,
+        "num_windows": 1905
+      },
+      {
+        "delta": 5.0,
+        "expected_mean": -0.15835130214691162,
+        "pred_mean": 0.07182596623897552,
+        "pred_abs_mean": 0.0796939805150032,
+        "ire_mae": 1.721380352973938,
+        "ire_rmse": 1.964359998703003,
+        "response_ratio": -0.4535862052611253,
+        "response_slope": 0.011875040829181671,
+        "response_corr": 0.3763135623158481,
+        "num_windows": 1905
+      }
+    ],
+    "summary": {
+      "curve_slope_from_means": 0.02689538739660121,
+      "curve_corr_from_means": 0.6332684289915669,
+      "curve_ire_mae_mean": 1.3058195436994235,
+      "curve_response_ratio_mean": -0.036043406644193636,
+      "num_delta_points": 12
+    }
+  }
+}
