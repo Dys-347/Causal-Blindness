@@ -2,12 +2,15 @@ import argparse
 import json
 import os
 import random
+import sys
 from datetime import datetime
 
 import numpy as np
 import torch
 import torch.nn as nn
 from torch import optim
+
+sys.path.insert(0, os.getcwd())
 
 from data_provider.data_factory import data_provider
 from exp.exp_long_term_forecasting import Exp_Long_Term_Forecast

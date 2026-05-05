@@ -22,7 +22,6 @@ check the numerical evidence reported by the experiments:
 ```text
 results/priority_20260504/summary.md
 results/lookback_20260504/summary.md
-results/v3_mechanism_family_20260504/summary.md
 results/ett_augmented_20260504/summary.md
 results/causal_r1_linear_baselines_20260504/linear_causal_baselines_report.md
 ```
@@ -40,8 +39,10 @@ results/gradient_sensitivity_20260504/report.md
 The following scripts are designed to be readable and runnable with local paths:
 
 ```bash
-python scripts/linear_causal_baselines.py --help
 python scripts/generate_synthetic_mechanism_family.py --help
+python scripts/linear_causal_baselines.py --help
+python scripts/train_tsl_seeded_synthetic.py --help
+python scripts/evaluate_tsl_seeded_synthetic.py --help
 python scripts/counterfactual_h1_response_eval.py --help
 python scripts/evaluate_delta_response_curve.py --help
 python scripts/gradient_input_sensitivity.py --help
@@ -49,6 +50,19 @@ python scripts/gradient_input_sensitivity.py --help
 
 They implement the response metrics, delta-response curves, linear sanity
 baselines, and functional sensitivity diagnostics used in the artifact.
+
+To generate the controlled mechanism-family extension used for reviewer-defense
+experiments:
+
+```bash
+python scripts/generate_synthetic_mechanism_family.py \
+  --output-dir dataset/causal_r1_mechanism_family \
+  --mechanisms linear_one_lag linear_multi_lag nonlinear_sin
+```
+
+Each generated CSV has a companion `.meta.json` file that defines the exact
+horizon-1 response label. This is important for nonlinear mechanisms, where the
+correct response is sample-dependent rather than a single constant slope.
 
 ## 4. Backbone-Dependent Experiments
 
@@ -75,6 +89,37 @@ CSV, the scripts also support:
 export CAUSAL_R1_SYNTHETIC_CSV=/path/to/synthetic_multivariate.csv
 ```
 
+For the main failure multi-seed rerun and the seed-specific iTransformer repair
+rerun, the recommended wrappers are:
+
+```text
+scripts/run_main_multiseed_20260505.sh
+scripts/run_itransformer_repair_multiseed_20260505.sh
+```
+
+The baseline wrapper trains DLinear, PatchTST, iTransformer, Crossformer, and
+TimeMixer with seed-specific settings and then evaluates each checkpoint with the
+same response metrics used in the paper. The iTransformer repair wrapper reuses
+the seed-specific iTransformer baseline checkpoint as initialization before
+applying response regularization.
+
+`evaluate_tsl_seeded_synthetic.py` also writes `window_h1_response.csv` for each
+checkpoint. This file stores the per-window predicted H1 response, analytic
+expected response, absolute error, and sign-correctness indicator, so reviewers can
+check that near-zero average response is not an artifact of positive and negative
+windows cancelling each other out.
+
+After copying baseline and repair outputs back into `results/`, the per-window
+distribution can be visualized with:
+
+```bash
+python scripts/plot_window_response_distribution.py \
+  --input-root results/main_multiseed_20260505 \
+  --input-root results/itransformer_repair_multiseed_20260505 \
+  --label iTransformer \
+  --label "iTransformer + RIR FT01"
+```
+
 ### DUET Based Runs
 
 Relevant scripts:
@@ -95,15 +140,19 @@ export TSL_DIR=/path/to/Time-Series-Library
 export LOG_ROOT=./causal_r1_runs
 ```
 
-To regenerate the controlled mechanism-family robustness experiment in a DUET
-checkout:
+For the v3 mechanism-family extension:
 
 ```bash
 export DUET_DIR=/path/to/DUET-main
-export CUDA_VISIBLE_DEVICES=0
 bash scripts/run_v3_mechanism_family_20260504.sh
+```
+
+After copying the generated DUET output directory back into this artifact, aggregate
+it with:
+
+```bash
 python scripts/summarize_v3_mechanism_family.py \
-  --input-root /path/to/DUET-main/causal_r1_duet/v3_mechanism_family_20260504 \
+  --input-root results/duet_v3_mechanism_family_20260504 \
   --output-dir results/v3_mechanism_family_20260504
 ```
 
